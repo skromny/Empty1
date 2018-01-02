@@ -373,7 +373,8 @@ class MainActivity : AppCompatActivity() {
                                 }
 
                                 //FuelManager.instance.baseHeaders?.plus(Pair("Authorization", o.token))
-
+                                val intent = Intent(applicationContext, Main2Activity::class.java)
+                                startActivity(intent)
                             }
 
                         }

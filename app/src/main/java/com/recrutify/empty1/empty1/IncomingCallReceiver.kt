@@ -20,6 +20,7 @@ import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.success
 import android.net.Uri
 import com.bumptech.glide.Glide
+import com.recrutify.empty1.empty1.candidate.CandidateActivity
 
 class IncomingCallReceiver : BroadcastReceiver() {
 
@@ -27,7 +28,9 @@ class IncomingCallReceiver : BroadcastReceiver() {
 
     companion object {
         var rgcView: View? = null
+        var candidate: CandidateContainer? = null
     }
+
 
     private var _xDelta: Int = 0
     private var _yDelta: Int = 0
@@ -52,7 +55,7 @@ class IncomingCallReceiver : BroadcastReceiver() {
 
         if(state == "RINGING")
         {
-            "/utils/checkNumber/${msisdn2}".httpGet()
+            "/utils/checkNumber/503173127".httpGet()
                     .responseObject(CandidateContainer.Deserializer()) { request, response, result ->
 
                         Log.i("RESULT", result.toString())
@@ -61,6 +64,7 @@ class IncomingCallReceiver : BroadcastReceiver() {
                         result.success { s->
                             Log.d("SUCCESS", s.toString())
 
+                            candidate = s
 
 
                             //===========
@@ -94,21 +98,24 @@ class IncomingCallReceiver : BroadcastReceiver() {
                             val candidateName = rgcView?.findViewById<TextView>(R.id.candidateName)
                             candidateName?.text = s.candidate.name
 
-                            candidateName?.setOnClickListener(object : View.OnClickListener {
-                                override fun onClick(v: View?) {
+                            candidateName?.setOnClickListener({
 
-                                    Log.i("TAG", "candidateName ->   CliCK")
-                                }
+                                    Log.i("TAG", "candidateName ->   CliCK on: ${candidate?.candidate?.name}" )
+
+                                    val intent = Intent(context.applicationContext, CandidateActivity::class.java)
+                                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                    context.startActivity(intent)
+
+                                    if(rgcView != null)
+                                        wm.removeView(rgcView)
+                                    rgcView = null;
                             })
 
                             val projectName = rgcView?.findViewById<TextView>(R.id.projectName)
-                            projectName?.text = s.projects?.first()?.name
+                            projectName?.text = s.projects?.first()?.name + ", " + s.projects?.first()?.companyName
 
-                            projectName?.setOnClickListener(object : View.OnClickListener {
-                                override fun onClick(v: View?) {
-
-                                    Log.i("TAG", "projectName ->   CliCK")
-                                }
+                            projectName?.setOnClickListener({
+                                    Log.i("TAG", "projectName ->   CliCK on: ${candidate?.projects?.first()?.name}")
                             })
 
 
@@ -118,7 +125,7 @@ class IncomingCallReceiver : BroadcastReceiver() {
 
                             val closeButton = rgcView?.findViewById<Button>(R.id.btnClose)
 
-                            closeButton?.setOnClickListener(View.OnClickListener {
+                            closeButton?.setOnClickListener({
                                 if(rgcView != null)
                                     wm.removeView(rgcView)
                                 rgcView = null;

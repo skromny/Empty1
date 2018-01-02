@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.recrutify.empty1.empty1.Main2Activity">
+
+    <!--<include layout="@layout/appbar_main"-->
+        <!--android:id="@+id/included_toolbar_main" />-->
+
+    <android.support.v4.view.ViewPager
+        android:id="@+id/custom_view_pager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <!--android:layout_below="@id/included_toolbar_main"-->
+
+        <android.support.design.widget.TabLayout
+            android:id="@+id/custom_tab_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:tabTextColor="#FFF"
+            android:background="@color/colorAccent" >
+
+        </android.support.design.widget.TabLayout>
+
+    </android.support.v4.view.ViewPager>
+
+</RelativeLayout>
