@@ -5,7 +5,6 @@ import android.os.Bundle
 import com.recrutify.empty1.empty1.main2fragmants.CandidatesFragment
 import com.recrutify.empty1.empty1.main2fragmants.ProjectsFragment
 import kotlinx.android.synthetic.main.activity_main2.*
-import kotlinx.android.synthetic.main.appbar_main.*
 
 class Main2Activity : AppCompatActivity() {
 

@@ -5,7 +5,6 @@ import com.recrutify.empty1.empty1.R
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import kotlinx.android.synthetic.main.activity_candidate.*
-import kotlinx.android.synthetic.main.appbar_main.*
 
 class CandidateActivity : AppCompatActivity() {
 

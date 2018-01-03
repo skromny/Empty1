@@ -1,26 +1,20 @@
 package com.recrutify.empty1.empty1
 
 import android.os.Bundle
-import android.support.design.widget.Snackbar
 import android.support.v4.content.PermissionChecker
 import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 
 import kotlinx.android.synthetic.main.activity_main.*
-import java.util.jar.Manifest
-import android.Manifest.permission
 import android.content.pm.PackageManager
 import android.os.Build
 import android.R.attr.targetSdkVersion
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.annotation.TargetApi
-import android.content.CursorLoader
 import android.provider.Settings
 import android.content.Intent
-import android.content.Loader
-import android.database.Cursor
 import android.net.Uri
 import android.os.AsyncTask
 import android.provider.ContactsContract
@@ -28,18 +22,11 @@ import android.text.TextUtils
 import android.util.Log
 import android.view.View
 import android.view.inputmethod.EditorInfo
-import android.widget.ArrayAdapter
 import android.widget.TextView
-import com.github.kittinunf.fuel.android.extension.responseJson
 import com.github.kittinunf.fuel.core.FuelManager
-import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.fuel.httpPost
-import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.success
 import kotlinx.android.synthetic.main.activity_login.*
-import java.net.URL
-import java.util.ArrayList
-import javax.xml.transform.Result
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 
