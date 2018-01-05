@@ -11,17 +11,19 @@ import de.hdodenhof.circleimageview.CircleImageView
 /**
  * Created by arturnowak on 02.01.2018.
  */
-class CandidatesCustomAdapter(val candidates:ArrayList<CandidateContainer>) : RecyclerView.Adapter<CandidatesCustomAdapter.ViewHolder>() {
+class CandidatesCustomAdapter(val candidates:ArrayList<Candidate>) : RecyclerView.Adapter<CandidatesCustomAdapter.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent?.context).inflate(R.layout.item_candidate, parent, false)
         return ViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: ViewHolder?, position: Int) {
-        Glide.with(holder?.avatarImage).load(candidates[position].candidate.avatarLink).into(holder?.avatarImage)
-        holder?.candidateName?.text = candidates[position].candidate.name
-        holder?.projectName?.text = candidates[position].projects.first().name
-        holder?.projectLocation?.text = candidates[position].projects.first().location
+        if(holder?.avatarImage != null)
+            Glide.with(holder?.avatarImage).load(candidates[position].avatarLink).into(holder?.avatarImage)
+
+        holder?.candidateName?.text = candidates[position].name
+        holder?.position?.text = candidates[position].position
+        holder?.description?.text = candidates[position].description
     }
 
     override fun getItemCount(): Int {
@@ -33,9 +35,7 @@ class CandidatesCustomAdapter(val candidates:ArrayList<CandidateContainer>) : Re
 
         val avatarImage = view.findViewById<CircleImageView>(R.id.avatarImage)
         val candidateName = view.findViewById<TextView>(R.id.candidateName)
-        val projectName = view.findViewById<TextView>(R.id.projectName)
-        val projectLocation = view.findViewById<TextView>(R.id.projectLocation)
-
-
+        val position = view.findViewById<TextView>(R.id.c_position)
+        val description = view.findViewById<TextView>(R.id.description)
     }
 }

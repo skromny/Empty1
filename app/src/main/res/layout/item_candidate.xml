@@ -43,21 +43,21 @@
                         android:textStyle="bold"/>
 
                     <TextView
-                        android:id="@+id/projectName"
+                        android:id="@+id/c_position"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
 
-                        android:text="Programista Java"
+                        android:text=" - "
                         android:textColor="#888"
                         android:textSize="14sp"
                         android:textStyle="bold"/>
 
                     <TextView
-                        android:id="@+id/projectLocation"
+                        android:id="@+id/description"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
 
-                        android:text="Warszawa"
+                        android:text="-"
                         android:textColor="#888"
                         android:textSize="14sp"
                         android:textStyle="bold"/>
