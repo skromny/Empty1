@@ -10,6 +10,7 @@ import android.R.attr.overridesImplicitlyEnabledSubtype
 import android.graphics.PixelFormat
 import android.graphics.Color
 import android.content.Context.LAYOUT_INFLATER_SERVICE
+import android.graphics.drawable.Drawable
 import android.util.Log
 import android.view.*
 import android.view.MotionEvent
@@ -20,6 +21,10 @@ import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.success
 import android.net.Uri
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.target.Target
 import com.recrutify.empty1.empty1.candidate.CandidateActivity
 
 class IncomingCallReceiver : BroadcastReceiver() {
@@ -43,62 +48,78 @@ class IncomingCallReceiver : BroadcastReceiver() {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        // TODO: This method is called when the BroadcastReceiver is receiving
-        // an Intent broadcast.
 
-        val state = intent.getStringExtra(TelephonyManager.EXTRA_STATE); //RINGING/OFFHOOK/IDLE
-        val msisdn = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER); //RINGING/OFFHOOK/IDLE
-
-        val msisdn2 = if (msisdn.startsWith("+")) msisdn.substring(3) else msisdn
-
-        val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-
-        if(state == "RINGING")
+        try
         {
-            "/utils/checkNumber/503173127".httpGet()
-                    .responseObject(CandidateContainer.Deserializer()) { request, response, result ->
+            Log.i("RGC.START", "-------------------")
 
-                        Log.i("RESULT", result.toString())
-                        Log.i("REQUEST", request.toString())
+            val state = intent.getStringExtra(TelephonyManager.EXTRA_STATE); //RINGING/OFFHOOK/IDLE
 
-                        result.success { s->
-                            Log.d("SUCCESS", s.toString())
+            if(state == "RINGING")
+            {
+                val msisdn = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER); //RINGING/OFFHOOK/IDLE
 
-                            candidate = s
+                if(msisdn == null)
+                    return
+
+                val msisdn2 = if (msisdn.startsWith("+")) msisdn.substring(3) else msisdn
+
+                Log.i("RGC.MSISDN", msisdn)
+                Log.i("RGC.MSISDN2", msisdn2)
+
+                "/utils/checkNumber/${msisdn2}".httpGet()
+                        .responseObject(CandidateContainer.Deserializer()) { request, response, result ->
+
+                            Log.i("RESULT", result.toString())
+                            Log.i("REQUEST", request.toString())
+
+                            result.success { s->
+                                Log.d("SUCCESS", s.toString())
+
+                                candidate = s
 
 
-                            //===========
+                                //===========
 
-                            val type = if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O)
-                                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-                            else
-                                WindowManager.LayoutParams.TYPE_PHONE
+                                val type = if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O)
+                                    WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+                                else
+                                    WindowManager.LayoutParams.TYPE_PHONE
 
-                            val params = WindowManager.LayoutParams(
-                                    WindowManager.LayoutParams.MATCH_PARENT,
-                                    dpToPx(context, 120), type,
-                                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-                                            or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
-                                    //or WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
-                                    PixelFormat.TRANSLUCENT)
+                                val params = WindowManager.LayoutParams(
+                                        WindowManager.LayoutParams.MATCH_PARENT,
+                                        dpToPx(context, 120), type,
+                                        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                                                or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+                                        //or WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+                                        PixelFormat.TRANSLUCENT)
 
-                            params.gravity = Gravity.NO_GRAVITY
+                                params.gravity = Gravity.NO_GRAVITY
 
-                            val inflater = context.getSystemService(LAYOUT_INFLATER_SERVICE) as LayoutInflater
-                            rgcView = inflater.inflate(R.layout.overlay_call_view, null)
+                                val inflater = context.getSystemService(LAYOUT_INFLATER_SERVICE) as LayoutInflater
+                                rgcView = inflater.inflate(R.layout.overlay_call_view, null)
 
-                            val avatarImage = rgcView?.findViewById<de.hdodenhof.circleimageview.CircleImageView>(R.id.avatarImage)
+                                val avatarImage = rgcView?.findViewById<de.hdodenhof.circleimageview.CircleImageView>(R.id.avatarImage)
 
-                            //ImageLoader.getInstance().displayImage(ImageDownloader.Scheme.FILE.wrap(uri.toString()), iv, options);
+                                Glide.with(context)
+                                        .load(s.candidate.avatarLink)
+                                        .listener(object : RequestListener<Drawable> {
+                                            override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>?, isFirstResource: Boolean): Boolean {
+                                                avatarImage?.setImageResource(R.drawable.ic_boss_1)
+                                                return true
+                                            }
 
-                            Glide.with(context).load(s.candidate.avatarLink).into(avatarImage)
+                                            override fun onResourceReady(resource: Drawable?, model: Any?, target: Target<Drawable>?, dataSource: DataSource?, isFirstResource: Boolean): Boolean {
+                                                return false
+                                            }
+                                        })
+                                        .into(avatarImage)
 
-                            //avatarImage?.setImageURI(Uri.parse(s.candidate.avatarLink))
 
-                            val candidateName = rgcView?.findViewById<TextView>(R.id.candidateName)
-                            candidateName?.text = s.candidate.name
+                                val candidateName = rgcView?.findViewById<TextView>(R.id.candidateName)
+                                candidateName?.text = s.candidate.name
 
-                            candidateName?.setOnClickListener({
+                                candidateName?.setOnClickListener({
 
                                     Log.i("TAG", "candidateName ->   CliCK on: ${candidate?.candidate?.name}" )
 
@@ -106,107 +127,113 @@ class IncomingCallReceiver : BroadcastReceiver() {
                                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                     context.startActivity(intent)
 
-                                    if(rgcView != null)
+
+                                    if(rgcView != null) {
+                                        val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
                                         wm.removeView(rgcView)
-                                    rgcView = null;
-                            })
-
-                            val projectName = rgcView?.findViewById<TextView>(R.id.projectName)
-                            projectName?.text = s.projects?.first()?.name + ", " + s.projects?.first()?.companyName
-
-                            projectName?.setOnClickListener({
-                                    Log.i("TAG", "projectName ->   CliCK on: ${candidate?.projects?.first()?.name}")
-                            })
-
-
-                            val projectLocation = rgcView?.findViewById<TextView>(R.id.projectLocation)
-                            projectLocation?.text = s.projects?.first()?.location
-
-
-                            val closeButton = rgcView?.findViewById<Button>(R.id.btnClose)
-
-                            closeButton?.setOnClickListener({
-                                if(rgcView != null)
-                                    wm.removeView(rgcView)
-                                rgcView = null;
-                            })
-
-                            rgcView?.setOnTouchListener(object : View.OnTouchListener {
-                                override fun onTouch(v: View?, event: MotionEvent): Boolean {
-
-                                    val X = event.rawX.toInt()
-                                    val Y = event.rawY.toInt()
-                                    when (event.action and MotionEvent.ACTION_MASK) {
-                                        MotionEvent.ACTION_DOWN -> {
-                                            Log.i("ACTION_DOWN", "!")
-                                            val lParams = v?.layoutParams as WindowManager.LayoutParams
-                                            //_xDelta = X - lParams.
-                                            _yDelta = Y - lParams.y
-                                        }
-                                        MotionEvent.ACTION_UP -> {
-                                            Log.i("ACTION_UP", "!")
-                                        }
-                                        MotionEvent.ACTION_POINTER_DOWN -> {
-                                            Log.i("ACTION_POINTER_DOWN", "!")
-                                        }
-                                        MotionEvent.ACTION_POINTER_UP -> {
-                                            Log.i("ACTION_POINTER_UP", "!")
-                                        }
-                                        MotionEvent.ACTION_MOVE -> {
-                                            Log.i("ACTION_MOVE", "!")
-                                            val layoutParams = v?.layoutParams as WindowManager.LayoutParams
-                                            layoutParams.y = Y - _yDelta
-                                            v.setLayoutParams(layoutParams)
-
-                                            wm.updateViewLayout(v, layoutParams)
-                                        }
-
+                                        rgcView = null;
                                     }
-                                    return true;
+
+                                })
+
+                                val projectName = rgcView?.findViewById<TextView>(R.id.projectName)
+
+                                if(s.projects?.size > 0)
+                                {
+                                    projectName?.text =  s.projects[0].name + ", " + s.projects[0].companyName
+
+                                    projectName?.setOnClickListener({
+                                        Log.i("TAG", "projectName ->   CliCK on: ${s.projects[0].name}")
+                                    })
+
+                                    val projectLocation = rgcView?.findViewById<TextView>(R.id.projectLocation)
+                                    projectLocation?.text = s.projects[0].location
+
                                 }
-                            })
-
-                            wm.addView(rgcView, params)
 
 
 
+                                val closeButton = rgcView?.findViewById<Button>(R.id.btnClose)
 
-                            //===========
+                                closeButton?.setOnClickListener({
+                                    if(rgcView != null) {
+                                        val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+                                        wm.removeView(rgcView)
+                                        rgcView = null;
+                                    }
+
+
+                                })
+
+                                rgcView?.setOnTouchListener(object : View.OnTouchListener {
+                                    override fun onTouch(v: View?, event: MotionEvent): Boolean {
+
+                                        val X = event.rawX.toInt()
+                                        val Y = event.rawY.toInt()
+                                        when (event.action and MotionEvent.ACTION_MASK) {
+                                            MotionEvent.ACTION_DOWN -> {
+                                                Log.i("ACTION_DOWN", "!")
+                                                val lParams = v?.layoutParams as WindowManager.LayoutParams
+                                                //_xDelta = X - lParams.
+                                                _yDelta = Y - lParams.y
+                                            }
+                                            MotionEvent.ACTION_UP -> {
+                                                Log.i("ACTION_UP", "!")
+                                            }
+                                            MotionEvent.ACTION_POINTER_DOWN -> {
+                                                Log.i("ACTION_POINTER_DOWN", "!")
+                                            }
+                                            MotionEvent.ACTION_POINTER_UP -> {
+                                                Log.i("ACTION_POINTER_UP", "!")
+                                            }
+                                            MotionEvent.ACTION_MOVE -> {
+                                                Log.i("ACTION_MOVE", "!")
+                                                val layoutParams = v?.layoutParams as WindowManager.LayoutParams
+                                                layoutParams.y = Y - _yDelta
+                                                v.setLayoutParams(layoutParams)
+
+                                                val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+                                                wm.updateViewLayout(v, layoutParams)
+                                            }
+
+                                        }
+                                        return true;
+                                    }
+                                })
+
+                                val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+                                wm.addView(rgcView, params)
+
+
+
+
+                                //===========
+
+                            }
+                            result.failure { e ->
+                                Log.e("FAILURE", e.toString())
+                            }
 
                         }
-                        result.failure { e ->
-                            Log.e("FAILURE", e.toString())
-                        }
 
-                    }
 
+            }
+            else if(state == "IDLE")
+            {
+                if(rgcView != null){
+                    val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+                    wm.removeView(rgcView)
+                }
+                rgcView = null;
+            }
 
         }
-        else if(state == "IDLE")
+        catch (ex: Exception)
         {
-            if(rgcView != null)
-                wm.removeView(rgcView)
-            rgcView = null;
+            Log.e("RGC", ex.toString())
         }
 
-//        myView.setOnClickListener(object : View.OnClickListener {
-//            override fun onClick(v: View?) {
-//                //Toast.makeText(context, "Hello", Toast.LENGTH_LONG)
-//                Log.i("TAG", "CliCK")
-//            }
-//        })
-//
-//        myView.setOnLongClickListener(object : View.OnLongClickListener {
-//            override fun onLongClick(v: View?): Boolean {
-//                //Toast.makeText(context, "Hello", Toast.LENGTH_LONG)
-//                Log.i("TAG", "Looong CliCK")
-//                v?.background?.alpha = 100
-//
-//                isMoving = true;
-//
-//                return true;
-//            }
-//        })
+
 
 
     }
